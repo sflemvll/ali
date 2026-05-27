@@ -5,6 +5,7 @@ import uuid
 import asyncio
 import tempfile
 import threading
+import requests as req_lib
 from pathlib import Path
 from urllib.parse import quote
 
@@ -15,6 +16,51 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.requests import Request
 from pydantic import BaseModel
 import yt_dlp
+
+# ── Invidious instances للـ YouTube fallback ─────────────────────────
+INVIDIOUS = [
+    "https://inv.nadeko.net",
+    "https://invidious.privacydev.net",
+    "https://yt.cdaut.de",
+    "https://invidious.nerdvpn.de",
+]
+
+def _yt_id(url: str):
+    m = re.search(r"(?:v=|youtu\.be/)([A-Za-z0-9_-]{11})", url)
+    return m.group(1) if m else None
+
+def _invidious_info(video_id: str):
+    for inst in INVIDIOUS:
+        try:
+            r = req_lib.get(f"{inst}/api/v1/videos/{video_id}", timeout=8)
+            if r.status_code == 200:
+                return r.json(), inst
+        except Exception:
+            continue
+    return None, None
+
+def _invidious_stream_url(video_id: str, height: int = 0):
+    """احصل على رابط stream مباشر من Invidious"""
+    data, inst = _invidious_info(video_id)
+    if not data:
+        return None, None, None
+    # اختر الجودة المناسبة
+    streams = data.get("adaptiveFormats", []) + data.get("formatStreams", [])
+    video_streams = [s for s in streams if s.get("type","").startswith("video")]
+    if height:
+        exact = [s for s in video_streams if s.get("resolution","") == f"{height}p"]
+        if exact:
+            video_streams = exact
+        else:
+            video_streams = [s for s in video_streams if int(s.get("resolution","0p").replace("p","") or 0) <= height] or video_streams
+    if video_streams:
+        video_streams.sort(key=lambda x: int(x.get("resolution","0p").replace("p","") or 0), reverse=True)
+        return video_streams[0].get("url"), data.get("title","video"), inst
+    # fallback: formatStreams (مدمجة)
+    fmt = data.get("formatStreams", [])
+    if fmt:
+        return fmt[0].get("url"), data.get("title","video"), inst
+    return None, None, None
 
 app = FastAPI(title="SaveIt — Universal Video Downloader")
 templates = Jinja2Templates(directory="templates")
@@ -184,15 +230,45 @@ async def get_info(data: InfoRequest):
         cache_set(data.url, result)
         return result
 
-    except yt_dlp.utils.DownloadError as e:
+    except Exception as e:
         err = str(e)
+        # ── fallback: Invidious لـ YouTube ──────────────────────────
+        vid = _yt_id(data.url)
+        if vid:
+            inv_data, inst = _invidious_info(vid)
+            if inv_data:
+                streams = inv_data.get("adaptiveFormats", []) + inv_data.get("formatStreams", [])
+                qualities, seen = [], set()
+                for s in streams:
+                    res = s.get("resolution","")
+                    if res and s.get("type","").startswith("video"):
+                        h = int(res.replace("p","") or 0)
+                        lbl = f"{h}p"
+                        if lbl not in seen and h:
+                            seen.add(lbl)
+                            qualities.append({"label": lbl, "height": h})
+                qualities.sort(key=lambda x: x["height"], reverse=True)
+                if not qualities:
+                    qualities = [{"label": "best", "height": 0}]
+                result = {
+                    "title":      inv_data.get("title","بدون عنوان"),
+                    "thumbnail":  (inv_data.get("videoThumbnails") or [{}])[0].get("url",""),
+                    "duration":   inv_data.get("lengthSeconds", 0),
+                    "channel":    inv_data.get("author",""),
+                    "view_count": inv_data.get("viewCount", 0),
+                    "platform":   "YouTube",
+                    "qualities":  qualities,
+                    "cached":     False,
+                    "via_invidious": True,
+                }
+                cache_set(data.url, result)
+                return result
+        # إذا ما نفع أي شي
         if "sign in" in err.lower() or "login" in err.lower():
             raise HTTPException(401, "هذا المحتوى يحتاج تسجيل دخول")
         if "private" in err.lower():
             raise HTTPException(403, "المحتوى خاص")
         raise HTTPException(400, f"تعذّر جلب المعلومات: {err}")
-    except Exception as e:
-        raise HTTPException(500, str(e))
 
 # ────────────────────────────────────────────────────────────────────
 # API — بدء التحميل (يرجع job_id فوراً)
@@ -310,8 +386,43 @@ def _run_download(job_id: str, url: str, quality: str):
         })
 
     except Exception as e:
+        err_msg = str(e)
+        # ── fallback: Invidious لـ YouTube ──────────────────────────
+        vid = _yt_id(url)
+        if vid:
+            try:
+                h_val = int(quality.replace("p","")) if quality not in ("best","audio") else 0
+                stream_url, title_inv, _ = _invidious_stream_url(vid, h_val)
+                if stream_url:
+                    title_inv = clean(title_inv or "video")
+                    out_path  = DOWNLOAD_DIR / f"{job_id}_{title_inv}.mp4"
+                    job.update({"status":"downloading","percent":1})
+                    # تحميل مباشر مع progress
+                    with req_lib.get(stream_url, stream=True, timeout=60) as resp:
+                        total = int(resp.headers.get("content-length", 0))
+                        dl = 0
+                        with open(out_path, "wb") as f:
+                            for chunk in resp.iter_content(chunk_size=1024*256):
+                                f.write(chunk)
+                                dl += len(chunk)
+                                pct = (dl/total*100) if total else 50
+                                job.update({"percent": round(min(pct,98),1),
+                                            "downloaded": dl, "total": total,
+                                            "speed": 0})
+                    real_size = out_path.stat().st_size
+                    job.update({
+                        "status": "done", "percent": 100,
+                        "filepath": str(out_path),
+                        "filename": f"{title_inv}.mp4",
+                        "ext": "mp4",
+                        "downloaded": real_size,
+                        "total": real_size,
+                    })
+                    return
+            except Exception as inv_e:
+                err_msg = f"yt-dlp: {err_msg} | invidious: {inv_e}"
         job["status"] = "error"
-        job["error"]  = str(e)
+        job["error"]  = err_msg
 
 # ────────────────────────────────────────────────────────────────────
 # API — SSE: بث التقدم الحقيقي
