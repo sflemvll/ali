@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark" data-lang="ar">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SaveIt — حمّل فيديوهات بجودة عالية</title>
+  <meta name="description" content="حمّل فيديوهات من يوتيوب، انستقرام، تيك توك وأكثر من 1800 منصة. مجاني 100%."/>
+  <meta name="theme-color" content="#6c63ff"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta property="og:title" content="SaveIt — حمّل من أي منصة"/>
+  <meta property="og:description" content="يوتيوب، انستقرام، تيك توك وأكثر. مجاني 100%."/>
+  <meta property="og:type" content="website"/>
+
+  <style>
+  /* ══════════════════════════════════════════════
+     THEME TOKENS
+  ══════════════════════════════════════════════ */
+  :root {
+    --accent:   #6c63ff;
+    --accent2:  #8b85ff;
+    --grad:     linear-gradient(135deg,#6c63ff,#ee5f9c);
+    --green:    #22c55e;
+    --blue:     #3b82f6;
+    --r:        15px;
+    --r2:       9px;
+    --tr:       .2s ease;
+  }
+  [data-theme="dark"] {
+    --bg:       #07090f;
+    --card:     #0e1117;
+    --card2:    #141820;
+    --border:   #1e2433;
+    --border2:  #252d3d;
+    --text:     #e8eaf0;
+    --muted:    #8892a4;
+    --muted2:   #4a5568;
+    --shadow:   0 8px 32px rgba(0,0,0,.5);
+  }
+  [data-theme="light"] {
+    --bg:       #f4f6fb;
+    --card:     #ffffff;
+    --card2:    #f0f2f8;
+    --border:   #dde1ec;
+    --border2:  #c8cdd8;
+    --text:     #1a1d2e;
+    --muted:    #5a6478;
+    --muted2:   #9aa0b0;
+    --shadow:   0 4px 20px rgba(0,0,0,.08);
+  }
+
+  /* ══════════════════════════════════════════════
+     RESET & BASE
+  ══════════════════════════════════════════════ */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+    background:var(--bg); color:var(--text);
+    min-height:100vh; display:flex; flex-direction:column;
+    transition:background .3s,color .3s;
+  }
+
+  /* ══════════════════════════════════════════════
+     HEADER
+  ══════════════════════════════════════════════ */
+  header{
+    position:sticky;top:0;z-index:100;
+    background:rgba(var(--bg-rgb,7,9,15),.88);
+    backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border);
+    padding:0 20px; height:58px;
+    display:flex;align-items:center;gap:12px;
+  }
+  [data-theme="light"] header{background:rgba(255,255,255,.88);}
+  .logo-wrap{display:flex;align-items:center;gap:9px;text-decoration:none;}
+  .logo-box{
+    width:32px;height:32px;
+    background:var(--grad);border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:15px;color:#fff;
+  }
+  .logo-txt{font-size:18px;font-weight:800;color:var(--text);}
+  .logo-txt span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+
+  .header-actions{margin-right:auto;display:flex;align-items:center;gap:8px;}
+
+  /* زر اللغة + الوضع */
+  .icon-btn{
+    background:var(--card2);border:1px solid var(--border);
+    border-radius:8px;padding:6px 10px;font-size:13px;
+    color:var(--text);cursor:pointer;
+    transition:border-color var(--tr),background var(--tr);
+    display:flex;align-items:center;gap:5px;
+    font-weight:600;white-space:nowrap;
+  }
+  .icon-btn:hover{border-color:var(--accent);color:var(--accent2);}
+
+  /* زر التاريخ */
+  .history-toggle{position:relative;}
+  .hist-badge{
+    position:absolute;top:-5px;right:-5px;
+    background:var(--accent);color:#fff;
+    border-radius:99px;font-size:10px;
+    width:16px;height:16px;
+    display:none;align-items:center;justify-content:center;
+    font-weight:700;
+  }
+
+  /* ══════════════════════════════════════════════
+     HERO
+  ══════════════════════════════════════════════ */
+  .hero{
+    position:relative;overflow:hidden;
+    padding:60px 20px 44px;text-align:center;
+  }
+  .hero-glow{
+    position:absolute;top:-100px;left:50%;transform:translateX(-50%);
+    width:500px;height:350px;
+    background:radial-gradient(ellipse,rgba(108,99,255,.14),transparent 70%);
+    pointer-events:none;
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.22);
+    border-radius:99px;padding:5px 14px;font-size:13px;
+    color:var(--accent2);margin-bottom:20px;
+  }
+  .hero h1{
+    font-size:clamp(26px,5vw,50px);font-weight:900;
+    line-height:1.15;margin-bottom:14px;letter-spacing:-.5px;
+  }
+  .hl{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .hero-sub{
+    font-size:clamp(14px,2vw,16px);color:var(--muted);
+    max-width:520px;margin:0 auto 32px;
+  }
+
+  /* ══════════════════════════════════════════════
+     INPUT CARD
+  ══════════════════════════════════════════════ */
+  .input-card{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:16px;padding:5px 5px 5px 16px;
+    display:flex;align-items:center;gap:8px;
+    max-width:660px;margin:0 auto;
+    box-shadow:var(--shadow);
+    transition:border-color var(--tr),box-shadow var(--tr);
+  }
+  .input-card:focus-within{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(108,99,255,.18),var(--shadow);
+  }
+  .input-card input{
+    flex:1;background:transparent;border:none;outline:none;
+    color:var(--text);font-size:15px;direction:ltr;min-width:0;
+  }
+  .input-card input::placeholder{color:var(--muted2);}
+  .btn-main{
+    background:var(--grad);color:#fff;border:none;border-radius:11px;
+    padding:12px 20px;font-size:15px;font-weight:700;cursor:pointer;
+    transition:opacity var(--tr),transform var(--tr);white-space:nowrap;flex-shrink:0;
+  }
+  .btn-main:hover:not(:disabled){opacity:.88;transform:scale(1.02);}
+  .btn-main:disabled{opacity:.45;cursor:not-allowed;}
+
+  /* منصات */
+  .platforms{
+    display:flex;flex-wrap:wrap;justify-content:center;gap:7px;
+    max-width:660px;margin:16px auto 0;
+  }
+  .p-chip{
+    background:var(--card2);border:1px solid var(--border);
+    border-radius:99px;padding:4px 12px;font-size:12px;
+    color:var(--muted);display:flex;align-items:center;gap:4px;
+    transition:border-color var(--tr),color var(--tr);
+  }
+  .p-chip:hover{border-color:var(--accent);color:var(--text);}
+
+  /* إحصاء */
+  .stats{
+    display:flex;justify-content:center;gap:36px;flex-wrap:wrap;
+    padding:8px 20px 36px;
+  }
+  .stat{text-align:center;}
+  .stat-n{font-size:24px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .stat-l{font-size:12px;color:var(--muted);}
+
+  /* ══════════════════════════════════════════════
+     VIDEO INFO CARD
+  ══════════════════════════════════════════════ */
+  .section{max-width:720px;margin:0 auto;padding:0 16px 48px;width:100%;}
+
+  #video-info{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:var(--r);box-shadow:var(--shadow);
+    display:none;animation:popIn .3s ease;overflow:hidden;
+  }
+  @keyframes popIn{from{opacity:0;transform:translateY(14px) scale(.98);}to{opacity:1;transform:none;}}
+
+  .info-top{
+    padding:18px 18px 0;display:flex;align-items:center;gap:8px;margin-bottom:14px;
+  }
+  .platform-pill{
+    display:inline-flex;align-items:center;gap:5px;
+    background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.22);
+    border-radius:99px;padding:3px 11px;font-size:12px;
+    color:var(--accent2);font-weight:600;
+  }
+  .cached-badge{
+    font-size:11px;background:rgba(34,197,94,.12);
+    border:1px solid rgba(34,197,94,.25);border-radius:99px;
+    padding:2px 9px;color:var(--green);display:none;
+  }
+
+  .preview{display:flex;gap:14px;padding:0 18px 16px;}
+  .thumb-wrap{
+    position:relative;flex-shrink:0;
+    width:152px;height:90px;border-radius:9px;overflow:hidden;
+    background:var(--card2);
+  }
+  .thumb-wrap img{width:100%;height:100%;object-fit:cover;}
+  .dur-badge{
+    position:absolute;bottom:4px;left:4px;
+    background:rgba(0,0,0,.72);border-radius:5px;
+    padding:1px 6px;font-size:11px;color:#fff;font-weight:600;
+  }
+  .v-title{
+    font-size:15px;font-weight:700;line-height:1.4;margin-bottom:7px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .v-meta{display:flex;flex-wrap:wrap;gap:10px;}
+  .v-meta span{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;}
+
+  .divider{height:1px;background:var(--border);margin:0 18px;}
+
+  /* جودة */
+  .q-section{padding:16px 18px;}
+  .q-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:block;}
+  .q-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px;}
+  .q-btn{
+    position:relative;background:var(--card2);border:1px solid var(--border2);
+    border-radius:8px;color:var(--text);padding:8px 14px;
+    font-size:13px;font-weight:600;cursor:pointer;
+    transition:all var(--tr);display:flex;align-items:center;gap:5px;
+  }
+  .q-btn:hover{border-color:var(--accent);color:var(--accent2);background:rgba(108,99,255,.07);}
+  .q-btn.active{background:rgba(108,99,255,.15);border-color:var(--accent);color:var(--accent2);}
+  .q-btn.active::after{
+    content:'✓';font-size:10px;background:var(--accent);color:#fff;
+    border-radius:50%;width:15px;height:15px;
+    display:flex;align-items:center;justify-content:center;
+    position:absolute;top:-5px;left:-5px;
+  }
+  .q-btn.audio-btn{border-color:rgba(34,197,94,.3);color:var(--green);}
+  .q-btn.audio-btn.active{background:rgba(34,197,94,.12);border-color:var(--green);}
+  .badge-4k,.badge-hd{font-size:9px;font-weight:800;padding:1px 5px;border-radius:4px;}
+  .badge-4k{background:var(--grad);color:#fff;}
+  .badge-hd{background:rgba(59,130,246,.2);color:var(--blue);border:1px solid rgba(59,130,246,.3);}
+
+  /* شريط تقدم */
+  #prog-wrap{display:none;margin-bottom:14px;}
+  .prog-header{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px;}
+  .prog-track{background:var(--card2);border-radius:99px;height:7px;overflow:hidden;margin-bottom:6px;}
+  .prog-fill{height:100%;background:var(--grad);border-radius:99px;width:0%;transition:width .3s ease;}
+  .prog-stats{display:flex;gap:16px;font-size:12px;color:var(--muted);}
+  .prog-stat span{color:var(--text);font-weight:600;}
+
+  /* زر التحميل */
+  .dl-btn{
+    width:100%;background:var(--grad);color:#fff;border:none;
+    border-radius:11px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;
+    transition:opacity var(--tr),transform var(--tr);
+    display:flex;align-items:center;justify-content:center;gap:7px;
+  }
+  .dl-btn:hover:not(:disabled){opacity:.88;transform:scale(1.01);}
+  .dl-btn:disabled{opacity:.45;cursor:not-allowed;}
+
+  /* تنبيهات */
+  .alert{border-radius:9px;padding:11px 15px;font-size:14px;display:none;align-items:center;gap:7px;margin-top:10px;}
+  .alert.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.22);color:#fca5a5;}
+  .alert.ok{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.22);color:#86efac;}
+
+  /* ══════════════════════════════════════════════
+     تاريخ التحميلات
+  ══════════════════════════════════════════════ */
+  .history-panel{
+    position:fixed;top:0;left:0;width:100%;height:100%;z-index:200;
+    display:none;
+  }
+  .history-panel.open{display:block;}
+  .hist-overlay{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);}
+  .hist-drawer{
+    position:absolute;left:0;top:0;height:100%;width:340px;max-width:90vw;
+    background:var(--card);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    animation:slideIn .25s ease;
+  }
+  [data-lang="ar"] .hist-drawer{left:auto;right:0;border-right:none;border-left:1px solid var(--border);animation:slideInRTL .25s ease;}
+  @keyframes slideIn{from{transform:translateX(-100%);}to{transform:none;}}
+  @keyframes slideInRTL{from{transform:translateX(100%);}to{transform:none;}}
+  .hist-head{
+    padding:18px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .hist-head h3{font-size:16px;font-weight:700;}
+  .hist-close{
+    background:none;border:none;color:var(--muted);cursor:pointer;
+    font-size:20px;line-height:1;padding:4px;
+    transition:color var(--tr);
+  }
+  .hist-close:hover{color:var(--text);}
+  .hist-list{flex:1;overflow-y:auto;padding:12px;}
+  .hist-empty{
+    text-align:center;color:var(--muted);padding:40px 20px;
+    font-size:14px;
+  }
+  .hist-item{
+    background:var(--card2);border:1px solid var(--border);
+    border-radius:9px;padding:12px;margin-bottom:8px;cursor:pointer;
+    transition:border-color var(--tr);
+  }
+  .hist-item:hover{border-color:var(--accent);}
+  .hist-item-title{font-size:13px;font-weight:600;margin-bottom:4px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .hist-item-meta{display:flex;gap:8px;font-size:11px;color:var(--muted);}
+  .hist-actions{padding:12px;border-top:1px solid var(--border);}
+  .clear-btn{
+    width:100%;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);
+    border-radius:8px;color:#fca5a5;padding:9px;font-size:13px;font-weight:600;cursor:pointer;
+    transition:background var(--tr);
+  }
+  .clear-btn:hover{background:rgba(239,68,68,.18);}
+
+  /* ══════════════════════════════════════════════
+     FEATURES
+  ══════════════════════════════════════════════ */
+  .features{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:12px;max-width:720px;margin:0 auto;padding:0 16px 48px;
+  }
+  .feat{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:var(--r);padding:18px;
+    transition:border-color var(--tr),transform var(--tr);
+  }
+  .feat:hover{border-color:var(--border2);transform:translateY(-2px);}
+  .feat-icon{font-size:24px;margin-bottom:8px;}
+  .feat h3{font-size:14px;font-weight:700;margin-bottom:4px;}
+  .feat p{font-size:13px;color:var(--muted);line-height:1.5;}
+
+  /* FAQ */
+  .faq-section{max-width:720px;margin:0 auto;padding:0 16px 48px;}
+  .faq-title{font-size:20px;font-weight:800;margin-bottom:16px;text-align:center;}
+  .faq-item{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:var(--r2);margin-bottom:8px;overflow:hidden;
+  }
+  .faq-q{
+    padding:13px 16px;cursor:pointer;
+    display:flex;justify-content:space-between;align-items:center;
+    font-weight:600;font-size:14px;user-select:none;
+  }
+  .faq-q::after{content:'﹢';font-size:18px;color:var(--muted);}
+  .faq-item.open .faq-q::after{content:'﹣';}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;font-size:14px;color:var(--muted);line-height:1.7;}
+  .faq-item.open .faq-a{max-height:200px;padding:0 16px 13px;}
+
+  /* PWA install prompt */
+  .pwa-prompt{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    background:var(--card);border:1px solid var(--border);
+    border-radius:12px;padding:14px 18px;
+    display:none;align-items:center;gap:12px;
+    box-shadow:var(--shadow);z-index:150;max-width:340px;width:90%;
+  }
+  .pwa-prompt.show{display:flex;}
+  .pwa-prompt p{font-size:13px;flex:1;}
+  .pwa-install-btn{
+    background:var(--grad);color:#fff;border:none;
+    border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;
+    white-space:nowrap;
+  }
+  .pwa-dismiss{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:2px;}
+
+  /* footer */
+  footer{
+    background:var(--card);border-top:1px solid var(--border);
+    padding:24px;text-align:center;
+  }
+  .foot-logo{font-size:17px;font-weight:800;margin-bottom:6px;}
+  .foot-logo span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  footer p{font-size:13px;color:var(--muted);}
+
+  /* جوال */
+  @media(max-width:560px){
+    .preview{flex-direction:column;}
+    .thumb-wrap{width:100%;height:180px;}
+    .input-card{flex-wrap:wrap;padding:10px;}
+    .btn-main{width:100%;}
+    .stats{gap:20px;}
+  }
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <a class="logo-wrap" href="/">
+    <div class="logo-box">S</div>
+    <div class="logo-txt">Save<span>It</span></div>
+  </a>
+  <div class="header-actions">
+    <!-- تاريخ التحميلات -->
+    <button class="icon-btn history-toggle" onclick="toggleHistory()" title="تاريخ التحميلات">
+      <span>📋</span>
+      <span data-i18n="history">السجل</span>
+      <div class="hist-badge" id="hist-badge"></div>
+    </button>
+    <!-- تبديل اللغة -->
+    <button class="icon-btn" onclick="toggleLang()" id="lang-btn">🌐 EN</button>
+    <!-- تبديل الوضع -->
+    <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">☀️</button>
+  </div>
+</header>
+
+<!-- ══ HISTORY PANEL ══ -->
+<div class="history-panel" id="history-panel">
+  <div class="hist-overlay" onclick="toggleHistory()"></div>
+  <div class="hist-drawer">
+    <div class="hist-head">
+      <h3 data-i18n="history_title">تاريخ التحميلات</h3>
+      <button class="hist-close" onclick="toggleHistory()">✕</button>
+    </div>
+    <div class="hist-list" id="hist-list">
+      <div class="hist-empty" data-i18n="history_empty">لا يوجد تحميلات بعد</div>
+    </div>
+    <div class="hist-actions">
+      <button class="clear-btn" onclick="clearHistory()" data-i18n="clear_history">🗑 مسح السجل</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="eyebrow">⚡ <span data-i18n="eyebrow">أسرع موقع تحميل فيديو</span></div>
+  <h1>
+    <span data-i18n="h1_1">حمّل من</span> <span class="hl" data-i18n="h1_2">أي منصة</span><br/>
+    <span data-i18n="h1_3">بجودة تصل لـ</span> <span class="hl">4K</span>
+  </h1>
+  <p class="hero-sub" data-i18n="hero_sub">يوتيوب، انستقرام، تيك توك، فيسبوك وأكثر من 1800 موقع. مجاني 100%.</p>
+
+  <div class="input-card">
+    <span>🔗</span>
+    <input type="url" id="url-input" autocomplete="off" autofocus
+      data-i18n-ph="placeholder"/>
+    <button class="btn-main" id="fetch-btn" onclick="fetchInfo()">
+      <span data-i18n="btn_fetch">⬇ تحميل</span>
+    </button>
+  </div>
+
+  <div class="platforms">
+    <div class="p-chip">▶ YouTube</div>
+    <div class="p-chip">📸 Instagram</div>
+    <div class="p-chip">🎵 TikTok</div>
+    <div class="p-chip">🐦 Twitter/X</div>
+    <div class="p-chip">📘 Facebook</div>
+    <div class="p-chip">🎬 Vimeo</div>
+    <div class="p-chip">🎮 Twitch</div>
+    <div class="p-chip">+ 1800 <span data-i18n="more">أخرى</span></div>
+  </div>
+
+  <div class="alert err" id="err-msg" style="max-width:660px;margin:12px auto 0;"></div>
+</section>
+
+<!-- ══ STATS ══ -->
+<div class="stats">
+  <div class="stat"><div class="stat-n">1800+</div><div class="stat-l" data-i18n="stat1">منصة مدعومة</div></div>
+  <div class="stat"><div class="stat-n">4K</div><div class="stat-l" data-i18n="stat2">أعلى جودة</div></div>
+  <div class="stat"><div class="stat-n">0$</div><div class="stat-l" data-i18n="stat3">مجاني تماماً</div></div>
+  <div class="stat"><div class="stat-n">⚡</div><div class="stat-l" data-i18n="stat4">تحميل فوري</div></div>
+</div>
+
+<!-- ══ VIDEO CARD ══ -->
+<div class="section">
+  <div id="video-info">
+    <div class="info-top">
+      <div class="platform-pill"><span id="p-icon">🌐</span><span id="p-name"></span></div>
+      <div class="cached-badge" id="cached-badge">⚡ <span data-i18n="cached">من الكاش</span></div>
+    </div>
+    <div class="preview">
+      <div class="thumb-wrap">
+        <img id="v-thumb" src="" alt="" onerror="this.parentElement.style.display='none'"/>
+        <div class="dur-badge" id="v-dur"></div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="v-title" id="v-title"></div>
+        <div class="v-meta">
+          <span id="v-ch"></span>
+          <span id="v-vw"></span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="q-section">
+      <span class="q-label" data-i18n="choose_quality">اختر الجودة</span>
+      <div class="q-grid" id="q-grid"></div>
+
+      <!-- شريط تقدم حقيقي -->
+      <div id="prog-wrap">
+        <div class="prog-header">
+          <span id="prog-text" data-i18n="downloading">⬇️ جاري التحميل...</span>
+          <span id="prog-pct">0%</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+        <div class="prog-stats">
+          <div>📦 <span data-i18n="size">الحجم</span>: <span id="prog-size">—</span></div>
+          <div>⚡ <span data-i18n="speed">السرعة</span>: <span id="prog-speed">—</span></div>
+          <div>✅ <span data-i18n="done_mb">تم</span>: <span id="prog-done">—</span></div>
+        </div>
+      </div>
+
+      <button class="dl-btn" id="dl-btn" onclick="startDownload()">
+        ⬇️ <span data-i18n="btn_download">تحميل الآن</span>
+      </button>
+      <div class="alert ok" id="ok-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FEATURES ══ -->
+<div class="features">
+  <div class="feat"><div class="feat-icon">⚡</div><h3 data-i18n="f1t">سرعة فائقة</h3><p data-i18n="f1d">خوادم سريعة تضمن التحميل خلال ثوانٍ.</p></div>
+  <div class="feat"><div class="feat-icon">🎯</div><h3 data-i18n="f2t">جودة عالية</h3><p data-i18n="f2d">من 144p حتى 4K — أنت من يختار.</p></div>
+  <div class="feat"><div class="feat-icon">🎵</div><h3 data-i18n="f3t">صوت MP3</h3><p data-i18n="f3d">استخرج الصوت بجودة 192kbps.</p></div>
+  <div class="feat"><div class="feat-icon">🔒</div><h3 data-i18n="f4t">خصوصية تامة</h3><p data-i18n="f4d">لا نحفظ روابطك. كل شي يُحذف فوراً.</p></div>
+  <div class="feat"><div class="feat-icon">📱</div><h3 data-i18n="f5t">يعمل على الجوال</h3><p data-i18n="f5d">قابل للتثبيت كتطبيق على الجوال.</p></div>
+  <div class="feat"><div class="feat-icon">🌐</div><h3 data-i18n="f6t">+1800 منصة</h3><p data-i18n="f6d">يوتيوب، انستقرام، تيك توك والمزيد.</p></div>
+</div>
+
+<!-- ══ FAQ ══ -->
+<div class="faq-section">
+  <h2 class="faq-title" data-i18n="faq_title">أسئلة شائعة</h2>
+  <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')" data-i18n="faq1q">كيف أحمّل فيديو من يوتيوب؟</div><div class="faq-a" data-i18n="faq1a">الصق الرابط في الخانة، اضغط تحميل، اختر الجودة ثم اضغط تحميل الآن.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')" data-i18n="faq2q">هل الموقع مجاني؟</div><div class="faq-a" data-i18n="faq2a">نعم، مجاني 100% بدون أي رسوم أو تسجيل.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')" data-i18n="faq3q">ما أعلى جودة متاحة؟</div><div class="faq-a" data-i18n="faq3a">تصل الجودة إلى 4K حسب ما يوفره الفيديو الأصلي.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')" data-i18n="faq4q">هل يعمل على الجوال؟</div><div class="faq-a" data-i18n="faq4a">نعم، ويمكن تثبيته كتطبيق على iPhone وAndroid.</div></div>
+</div>
+
+<footer>
+  <div class="foot-logo">Save<span>It</span></div>
+  <p data-i18n="footer_sub">حمّل فيديوهاتك من أي مكان، بأعلى جودة، مجاناً.</p>
+  <p style="margin-top:10px;font-size:12px;color:var(--muted2)">© 2025 SaveIt</p>
+</footer>
+
+<!-- PWA install prompt -->
+<div class="pwa-prompt" id="pwa-prompt">
+  <span style="font-size:22px">📲</span>
+  <p data-i18n="pwa_msg">ثبّت SaveIt كتطبيق على جهازك!</p>
+  <button class="pwa-install-btn" id="pwa-install" data-i18n="pwa_btn">تثبيت</button>
+  <button class="pwa-dismiss" onclick="document.getElementById('pwa-prompt').classList.remove('show')">✕</button>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   i18n — ترجمات
+════════════════════════════════════════════ */
+const TRANSLATIONS = {
+  ar: {
+    eyebrow:"أسرع موقع تحميل فيديو",
+    h1_1:"حمّل من", h1_2:"أي منصة", h1_3:"بجودة تصل لـ",
+    hero_sub:"يوتيوب، انستقرام، تيك توك، فيسبوك وأكثر من 1800 موقع. مجاني 100%.",
+    placeholder:"الصق رابط الفيديو هنا...",
+    btn_fetch:"⬇ تحميل", btn_download:"تحميل الآن",
+    history:"السجل", history_title:"تاريخ التحميلات",
+    history_empty:"لا يوجد تحميلات بعد", clear_history:"🗑 مسح السجل",
+    cached:"من الكاش ⚡", choose_quality:"اختر الجودة",
+    downloading:"⬇️ جاري التحميل...", size:"الحجم", speed:"السرعة", done_mb:"تم",
+    stat1:"منصة مدعومة", stat2:"أعلى جودة", stat3:"مجاني تماماً", stat4:"تحميل فوري",
+    more:"أخرى",
+    f1t:"سرعة فائقة",f1d:"خوادم سريعة تضمن التحميل خلال ثوانٍ.",
+    f2t:"جودة عالية",f2d:"من 144p حتى 4K — أنت من يختار.",
+    f3t:"صوت MP3",f3d:"استخرج الصوت بجودة 192kbps.",
+    f4t:"خصوصية تامة",f4d:"لا نحفظ روابطك. كل شي يُحذف فوراً.",
+    f5t:"يعمل على الجوال",f5d:"قابل للتثبيت كتطبيق على الجوال.",
+    f6t:"+1800 منصة",f6d:"يوتيوب، انستقرام، تيك توك والمزيد.",
+    faq_title:"أسئلة شائعة",
+    faq1q:"كيف أحمّل فيديو من يوتيوب؟",faq1a:"الصق الرابط في الخانة، اضغط تحميل، اختر الجودة ثم تحميل الآن.",
+    faq2q:"هل الموقع مجاني؟",faq2a:"نعم، مجاني 100% بدون أي رسوم أو تسجيل.",
+    faq3q:"ما أعلى جودة متاحة؟",faq3a:"تصل الجودة إلى 4K حسب ما يوفره الفيديو الأصلي.",
+    faq4q:"هل يعمل على الجوال؟",faq4a:"نعم، ويمكن تثبيته كتطبيق على iPhone وAndroid.",
+    footer_sub:"حمّل فيديوهاتك من أي مكان، بأعلى جودة، مجاناً.",
+    pwa_msg:"ثبّت SaveIt كتطبيق على جهازك!", pwa_btn:"تثبيت",
+    err_no_url:"الرجاء إدخال رابط الفيديو",
+    err_conn:"تعذّر الاتصال. تحقق من الرابط وحاول مجدداً.",
+    err_quality:"اختر جودة التحميل أولاً",
+    ok_done:"✅ تم التحميل! تحقق من مجلد التنزيلات.",
+    preparing:"⏳ جاري التحضير...",
+    fetching:"⏳ جاري الجلب...",
+    processing:"⚙️ جاري المعالجة...",
+    best_quality:"🎯 أفضل جودة",
+    audio_mp3:"🎵 صوت MP3",
+  },
+  en: {
+    eyebrow:"Fastest Video Downloader",
+    h1_1:"Download from", h1_2:"Any Platform", h1_3:"Up to",
+    hero_sub:"YouTube, Instagram, TikTok, Facebook and 1800+ sites. 100% Free.",
+    placeholder:"Paste video link here...",
+    btn_fetch:"⬇ Download", btn_download:"Download Now",
+    history:"History", history_title:"Download History",
+    history_empty:"No downloads yet", clear_history:"🗑 Clear History",
+    cached:"Cached ⚡", choose_quality:"Choose Quality",
+    downloading:"⬇️ Downloading...", size:"Size", speed:"Speed", done_mb:"Done",
+    stat1:"Platforms", stat2:"Max Quality", stat3:"100% Free", stat4:"Instant",
+    more:"more",
+    f1t:"Lightning Fast",f1d:"Fast servers ensure downloads in seconds.",
+    f2t:"High Quality",f2d:"From 144p up to 4K — your choice.",
+    f3t:"MP3 Audio",f3d:"Extract audio at 192kbps quality.",
+    f4t:"Full Privacy",f4d:"We never store your links. Files deleted instantly.",
+    f5t:"Mobile Ready",f5d:"Install as an app on your phone.",
+    f6t:"1800+ Sites",f6d:"YouTube, Instagram, TikTok and more.",
+    faq_title:"FAQ",
+    faq1q:"How to download a YouTube video?",faq1a:"Paste the link, click Download, choose quality, then Download Now.",
+    faq2q:"Is it free?",faq2a:"Yes, 100% free with no registration required.",
+    faq3q:"What's the highest quality?",faq3a:"Up to 4K depending on the original video.",
+    faq4q:"Does it work on mobile?",faq4a:"Yes, and you can install it as an app on iPhone and Android.",
+    footer_sub:"Download videos from anywhere, in the best quality, for free.",
+    pwa_msg:"Install SaveIt as an app on your device!", pwa_btn:"Install",
+    err_no_url:"Please enter a video URL",
+    err_conn:"Connection failed. Check the URL and try again.",
+    err_quality:"Please select a quality first",
+    ok_done:"✅ Download complete! Check your Downloads folder.",
+    preparing:"⏳ Preparing...",
+    fetching:"⏳ Fetching...",
+    processing:"⚙️ Processing...",
+    best_quality:"🎯 Best Quality",
+    audio_mp3:"🎵 MP3 Audio",
+  }
+};
+
+/* ════ حالة التطبيق ════ */
+let currentLang  = localStorage.getItem("lang")  || "ar";
+let currentTheme = localStorage.getItem("theme") || "dark";
+let selQ         = null;
+let currentJobId = null;
+let currentInfo  = null;
+
+/* ════ تطبيق الثيم واللغة عند التحميل ════ */
+applyTheme(currentTheme);
+applyLang(currentLang);
+renderHistory();
+
+/* ════ THEME ════ */
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  document.getElementById("theme-btn").textContent = t === "dark" ? "☀️" : "🌙";
+  localStorage.setItem("theme", t);
+}
+function toggleTheme() {
+  currentTheme = currentTheme === "dark" ? "light" : "dark";
+  applyTheme(currentTheme);
+}
+
+/* ════ LANG ════ */
+function applyLang(lang) {
+  currentLang = lang;
+  const isAr  = lang === "ar";
+  document.documentElement.setAttribute("lang",  isAr ? "ar" : "en");
+  document.documentElement.setAttribute("dir",   isAr ? "rtl" : "ltr");
+  document.documentElement.setAttribute("data-lang", lang);
+  document.getElementById("lang-btn").textContent = isAr ? "🌐 EN" : "🌐 ع";
+  localStorage.setItem("lang", lang);
+
+  const T = TRANSLATIONS[lang];
+  // ترجمة كل العناصر
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (T[key] !== undefined) el.textContent = T[key];
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => {
+    el.placeholder = T["placeholder"] || "";
+  });
+}
+function toggleLang() {
+  applyLang(currentLang === "ar" ? "en" : "ar");
+}
+function t(key) { return TRANSLATIONS[currentLang][key] || key; }
+
+/* ════ مساعدات ════ */
+const ICONS = {
+  YouTube:"▶️",Instagram:"📸",TikTok:"🎵","Twitter/X":"🐦",
+  Facebook:"📘",Vimeo:"🎬",Twitch:"🎮",Reddit:"🔴",
+  Dailymotion:"📅",Pinterest:"📌",Snapchat:"👻",LinkedIn:"💼",
+};
+function fmtDur(s){
+  if(!s)return"";const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;
+  return h>0?`${h}:${String(m).padStart(2,"0")}:${String(sc).padStart(2,"0")}`:`${m}:${String(sc).padStart(2,"0")}`;
+}
+function fmtViews(n){
+  if(!n)return"";
+  if(n>=1e6)return(n/1e6).toFixed(1)+"M";if(n>=1e3)return(n/1e3).toFixed(1)+"K";return n.toLocaleString();
+}
+function fmtBytes(b){
+  if(!b||b<=0)return"—";
+  if(b>=1e9)return(b/1e9).toFixed(2)+" GB";
+  if(b>=1e6)return(b/1e6).toFixed(1)+" MB";
+  return(b/1e3).toFixed(0)+" KB";
+}
+function fmtSpeed(bps){
+  if(!bps||bps<=0)return"—";
+  if(bps>=1e6)return(bps/1e6).toFixed(1)+" MB/s";
+  return(bps/1e3).toFixed(0)+" KB/s";
+}
+
+function showErr(msg){
+  const el=document.getElementById("err-msg");
+  el.textContent="⚠️ "+msg;el.style.display="flex";
+}
+function hideErr(){document.getElementById("err-msg").style.display="none";}
+
+/* ════ جلب معلومات الفيديو ════ */
+async function fetchInfo(){
+  const url=document.getElementById("url-input").value.trim();
+  if(!url){showErr(t("err_no_url"));return;}
+  hideErr();
+  const btn=document.getElementById("fetch-btn");
+  btn.disabled=true;
+  btn.querySelector("[data-i18n]").textContent=t("fetching");
+  document.getElementById("video-info").style.display="none";
+  document.getElementById("ok-msg").style.display="none";
+
+  try{
+    const r=await fetch("/api/info",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({url})
+    });
+    const d=await r.json();
+    if(!r.ok){showErr(d.detail||"Error");return;}
+
+    currentInfo=d;
+    // منصة
+    document.getElementById("p-icon").textContent=ICONS[d.platform]||"🌐";
+    document.getElementById("p-name").textContent=d.platform||"";
+    // كاش
+    const cb=document.getElementById("cached-badge");
+    cb.style.display=d.cached?"inline-flex":"none";
+    // معاينة
+    document.getElementById("v-thumb").src=d.thumbnail||"";
+    document.getElementById("v-title").textContent=d.title;
+    const dur=fmtDur(d.duration);
+    const durEl=document.getElementById("v-dur");
+    durEl.textContent=dur;durEl.style.display=dur?"block":"none";
+    const ch=document.getElementById("v-ch");
+    ch.innerHTML=d.channel?`📺 ${d.channel}`:"";ch.style.display=d.channel?"flex":"none";
+    const vw=document.getElementById("v-vw");
+    vw.innerHTML=d.view_count?`👁 ${fmtViews(d.view_count)}`:"";vw.style.display=d.view_count?"flex":"none";
+
+    // جودات
+    const grid=document.getElementById("q-grid");
+    grid.innerHTML="";selQ=null;
+    addQ(grid,t("best_quality"),"best","");
+    (d.qualities||[]).forEach(q=>{
+      let b="";
+      if(q.height>=2160)b=`<span class="badge-4k">4K</span>`;
+      else if(q.height>=1080)b=`<span class="badge-hd">HD</span>`;
+      addQ(grid,`${q.label} ${b}`,q.label,"");
+    });
+    addQ(grid,t("audio_mp3"),"audio","audio-btn");
+
+    document.getElementById("prog-wrap").style.display="none";
+    document.getElementById("video-info").style.display="block";
+    document.getElementById("video-info").scrollIntoView({behavior:"smooth",block:"nearest"});
+
+  }catch(e){showErr(t("err_conn"));}
+  finally{
+    btn.disabled=false;
+    btn.querySelector("[data-i18n]").textContent=t("btn_fetch");
+  }
+}
+
+function addQ(container,labelHtml,value,extraClass){
+  const btn=document.createElement("button");
+  btn.className=`q-btn ${extraClass}`;btn.innerHTML=labelHtml;
+  btn.onclick=()=>{
+    document.querySelectorAll(".q-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");selQ=value;
+  };
+  container.appendChild(btn);
+}
+
+/* ════ تحميل مع شريط تقدم حقيقي ════ */
+async function startDownload(){
+  if(!selQ){showErr(t("err_quality"));return;}
+  const url=document.getElementById("url-input").value.trim();
+  const dlBtn=document.getElementById("dl-btn");
+  const progWrap=document.getElementById("prog-wrap");
+  const progFill=document.getElementById("prog-fill");
+  const progText=document.getElementById("prog-text");
+  const progPct=document.getElementById("prog-pct");
+  const progSize=document.getElementById("prog-size");
+  const progSpeed=document.getElementById("prog-speed");
+  const progDone=document.getElementById("prog-done");
+  const okMsg=document.getElementById("ok-msg");
+
+  dlBtn.disabled=true;
+  dlBtn.querySelector("[data-i18n]").textContent=t("preparing");
+  progWrap.style.display="block";okMsg.style.display="none";hideErr();
+
+  try{
+    // 1. ابدأ التحميل واحصل على job_id
+    const startRes=await fetch("/api/download/start",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({url,quality:selQ})
+    });
+    const {job_id}=await startRes.json();
+    currentJobId=job_id;
+
+    // 2. استمع للتقدم عبر SSE
+    await new Promise((resolve,reject)=>{
+      const es=new EventSource(`/api/progress/${job_id}`);
+      es.onmessage=e=>{
+        const d=JSON.parse(e.data);
+
+        // تحديث الشريط
+        const pct=Math.round(d.percent||0);
+        progFill.style.width=pct+"%";
+        progPct.textContent=pct+"%";
+        progSize.textContent=fmtBytes(d.total);
+        progSpeed.textContent=fmtSpeed(d.speed);
+        progDone.textContent=fmtBytes(d.downloaded);
+
+        if(d.status==="processing"){
+          progText.textContent=t("processing");
+          progFill.style.width="99%";progPct.textContent="99%";
+          progSpeed.textContent="—"; // الدمج لا يعطي سرعة
+        }
+        if(d.status==="done"){
+          // الحجم الحقيقي النهائي من الملف المدمج
+          const realSize = d.total || d.downloaded;
+          progFill.style.width="100%";
+          progPct.textContent="100%";
+          progSize.textContent = fmtBytes(realSize);
+          progDone.textContent = fmtBytes(realSize);
+          progSpeed.textContent = "✅";
+          progText.textContent  = "✅ اكتمل!";
+          es.close();resolve();
+        }
+        if(d.status==="error"){
+          es.close();reject(new Error(d.error||"فشل التحميل"));
+        }
+      };
+      es.onerror=()=>{es.close();reject(new Error(t("err_conn")));};
+    });
+
+    // 3. حمّل الملف
+    progText.textContent="💾 جاري الحفظ...";
+    const fileRes=await fetch(`/api/file/${job_id}`);
+    if(!fileRes.ok){const e=await fileRes.json();throw new Error(e.detail);}
+
+    const blob=await fileRes.blob();
+    const disp=fileRes.headers.get("Content-Disposition")||"";
+    const ext=selQ==="audio"?"mp3":"mp4";
+    const match=disp.match(/filename="(.+?)"/);
+    const fname=match?match[1]:`video.${ext}`;
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);a.download=fname;a.click();
+    URL.revokeObjectURL(a.href);
+
+    // حفظ في التاريخ
+    if(currentInfo) saveHistory({
+      title:currentInfo.title,
+      platform:currentInfo.platform,
+      thumbnail:currentInfo.thumbnail,
+      quality:selQ,
+      url,
+      ts:Date.now()
+    });
+
+    okMsg.textContent=t("ok_done");okMsg.style.display="flex";
+
+  }catch(e){
+    progWrap.style.display="none";showErr(e.message);
+  }finally{
+    dlBtn.disabled=false;
+    dlBtn.querySelector("[data-i18n]").textContent=t("btn_download");
+  }
+}
+
+/* ════ تاريخ التحميلات ════ */
+function loadHistory(){return JSON.parse(localStorage.getItem("dl_history")||"[]");}
+function saveHistory(item){
+  let h=loadHistory();
+  h.unshift(item);
+  if(h.length>20)h=h.slice(0,20);
+  localStorage.setItem("dl_history",JSON.stringify(h));
+  renderHistory();
+}
+function clearHistory(){
+  localStorage.removeItem("dl_history");renderHistory();
+}
+function renderHistory(){
+  const h=loadHistory();
+  const badge=document.getElementById("hist-badge");
+  badge.textContent=h.length;
+  badge.style.display=h.length?"flex":"none";
+
+  const list=document.getElementById("hist-list");
+  if(!h.length){
+    list.innerHTML=`<div class="hist-empty" data-i18n="history_empty">${t("history_empty")}</div>`;
+    return;
+  }
+  list.innerHTML=h.map((item,i)=>`
+    <div class="hist-item" onclick="loadFromHistory(${i})">
+      <div class="hist-item-title">${item.title||"—"}</div>
+      <div class="hist-item-meta">
+        <span>${ICONS[item.platform]||"🌐"} ${item.platform||""}</span>
+        <span>📥 ${item.quality||""}</span>
+        <span>🕒 ${timeAgo(item.ts)}</span>
+      </div>
+    </div>
+  `).join("");
+}
+function loadFromHistory(i){
+  const h=loadHistory();const item=h[i];
+  if(!item)return;
+  document.getElementById("url-input").value=item.url;
+  toggleHistory();
+  fetchInfo();
+}
+function timeAgo(ts){
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60)return"الآن";if(s<3600)return Math.floor(s/60)+"د";
+  if(s<86400)return Math.floor(s/3600)+"س";return Math.floor(s/86400)+"ي";
+}
+function toggleHistory(){
+  document.getElementById("history-panel").classList.toggle("open");
+}
+
+/* ════ PWA ════ */
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById("pwa-prompt").classList.add("show");
+});
+document.getElementById("pwa-install").addEventListener("click",async()=>{
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  const {outcome}=await deferredPrompt.userChoice;
+  deferredPrompt=null;
+  document.getElementById("pwa-prompt").classList.remove("show");
+});
+// تسجيل Service Worker
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("/sw.js").catch(()=>{});
+}
+
+/* ════ Enter ════ */
+document.getElementById("url-input").addEventListener("keydown",e=>{
+  if(e.key==="Enter")fetchInfo();
+});
+</script>
+</body>
+</html>

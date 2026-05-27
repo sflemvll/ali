@@ -1,0 +1,17 @@
+{
+  "name": "SaveIt — Video Downloader",
+  "short_name": "SaveIt",
+  "description": "حمّل فيديوهات من يوتيوب وانستقرام وتيك توك وأكثر",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07090f",
+  "theme_color": "#6c63ff",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "icons": [
+    { "src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "categories": ["utilities", "entertainment"]
+}
