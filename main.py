@@ -91,10 +91,11 @@ def base_opts(for_download: bool = False) -> dict:
             )
         },
     }
-    # tv_embedded يعمل من أي IP بدون PO token
+    # استخدم PO token provider إذا متاح، وإلا tv_embedded
     opts["extractor_args"] = {
         "youtube": {
-            "player_client": ["tv_embedded", "web_embedded", "ios"],
+            "player_client": ["web", "tv_embedded"],
+            "po_token": ["web+bgutil://localhost:4416"],
         }
     }
     if COOKIES_FILE.exists():
