@@ -91,11 +91,12 @@ def base_opts(for_download: bool = False) -> dict:
             )
         },
     }
-    # استخدم web_creator للتحميل فقط (يتجاوز حجب السيرفر)
-    if for_download:
-        opts["extractor_args"] = {
-            "youtube": {"player_client": ["web_creator", "ios", "web"]}
+    # tv_embedded يعمل من أي IP بدون PO token
+    opts["extractor_args"] = {
+        "youtube": {
+            "player_client": ["tv_embedded", "web_embedded", "ios"],
         }
+    }
     if COOKIES_FILE.exists():
         opts["cookiefile"] = str(COOKIES_FILE)
     return opts
