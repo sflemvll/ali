@@ -235,18 +235,14 @@ def _run_download(job_id: str, url: str, quality: str):
 
     # ── إعدادات الصيغة ────────────────────────────────────────
     if quality == "audio":
-        fmt, ext = "bestaudio/best", "mp3"
+        fmt, ext = "bestaudio*/best", "mp3"
         pp = [{"key":"FFmpegExtractAudio","preferredcodec":"mp3","preferredquality":"192"}]
     elif quality == "best":
-        fmt, ext = "bestvideo+bestaudio/best/bestvideo/best", "mp4"
+        fmt, ext = "bestvideo*+bestaudio*/best", "mp4"
         pp = [{"key":"FFmpegVideoConvertor","preferedformat":"mp4"}]
     else:
         h   = quality.replace("p","")
-        fmt = (
-            f"bestvideo[height<={h}][ext=mp4]+bestaudio[ext=m4a]/"
-            f"bestvideo[height<={h}]+bestaudio/"
-            f"best[height<={h}]/best"
-        )
+        fmt = f"bestvideo*[height<={h}]+bestaudio*/best[height<={h}]/best"
         ext = "mp4"
         pp  = [{"key":"FFmpegVideoConvertor","preferedformat":"mp4"}]
 
