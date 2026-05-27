@@ -76,16 +76,11 @@ def _ensure_cookies_file():
     if cookie_env and not COOKIES_FILE.exists():
         COOKIES_FILE.write_text(cookie_env, encoding="utf-8")
 
-def base_opts() -> dict:
+def base_opts(for_download: bool = False) -> dict:
     _ensure_cookies_file()
     opts = {
         "quiet": True,
         "no_warnings": True,
-        "extractor_args": {
-            "youtube": {
-                "player_client": ["ios", "web"],
-            }
-        },
         "http_headers": {
             "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -94,6 +89,11 @@ def base_opts() -> dict:
             )
         },
     }
+    # استخدم web_creator للتحميل فقط (يتجاوز حجب السيرفر)
+    if for_download:
+        opts["extractor_args"] = {
+            "youtube": {"player_client": ["web_creator", "ios", "web"]}
+        }
     if COOKIES_FILE.exists():
         opts["cookiefile"] = str(COOKIES_FILE)
     return opts
@@ -250,7 +250,7 @@ def _run_download(job_id: str, url: str, quality: str):
     out_tmpl = str(DOWNLOAD_DIR / f"{uid}_%(title)s.%(ext)s")
 
     opts = {
-        **base_opts(),
+        **base_opts(for_download=True),
         "format": fmt,
         "outtmpl": out_tmpl,
         "postprocessors": pp,
