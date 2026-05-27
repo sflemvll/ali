@@ -73,8 +73,10 @@ COOKIES_FILE = Path(__file__).parent / "cookies.txt"
 def _ensure_cookies_file():
     """إذا في YOUTUBE_COOKIES في البيئة، اكتبها لملف مؤقت"""
     cookie_env = os.environ.get("YOUTUBE_COOKIES", "")
-    if cookie_env and not COOKIES_FILE.exists():
-        COOKIES_FILE.write_text(cookie_env, encoding="utf-8")
+    if cookie_env:
+        # Railway يخزن السطور كـ \n نصية — نحولها لأسطر حقيقية
+        content = cookie_env.replace("\\n", "\n").replace("\\t", "\t")
+        COOKIES_FILE.write_text(content, encoding="utf-8")
 
 def base_opts(for_download: bool = False) -> dict:
     _ensure_cookies_file()
@@ -97,6 +99,23 @@ def base_opts(for_download: bool = False) -> dict:
     if COOKIES_FILE.exists():
         opts["cookiefile"] = str(COOKIES_FILE)
     return opts
+
+# ── تشخيص الكوكيز ───────────────────────────────────────────────────
+@app.get("/debug/cookies")
+async def debug_cookies():
+    _ensure_cookies_file()
+    env_val = os.environ.get("YOUTUBE_COOKIES", "")
+    exists  = COOKIES_FILE.exists()
+    size    = COOKIES_FILE.stat().st_size if exists else 0
+    lines   = COOKIES_FILE.read_text(encoding="utf-8").count("\n") if exists else 0
+    return {
+        "env_set":     bool(env_val),
+        "env_len":     len(env_val),
+        "file_exists": exists,
+        "file_size":   size,
+        "file_lines":  lines,
+        "file_path":   str(COOKIES_FILE),
+    }
 
 # ── تنظيف اسم الملف ─────────────────────────────────────────────────
 def clean(name: str) -> str:
