@@ -70,7 +70,14 @@ def detect_platform(url: str) -> str:
 # ── إعدادات yt-dlp الأساسية ─────────────────────────────────────────
 COOKIES_FILE = Path(__file__).parent / "cookies.txt"
 
+def _ensure_cookies_file():
+    """إذا في YOUTUBE_COOKIES في البيئة، اكتبها لملف مؤقت"""
+    cookie_env = os.environ.get("YOUTUBE_COOKIES", "")
+    if cookie_env and not COOKIES_FILE.exists():
+        COOKIES_FILE.write_text(cookie_env, encoding="utf-8")
+
 def base_opts() -> dict:
+    _ensure_cookies_file()
     opts = {
         "quiet": True,
         "no_warnings": True,
