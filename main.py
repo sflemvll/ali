@@ -19,10 +19,14 @@ import yt_dlp
 
 # ── Invidious instances للـ YouTube fallback ─────────────────────────
 INVIDIOUS = [
+    "https://invidious.io.lol",
+    "https://inv.in.projectsegfau.lt",
     "https://inv.nadeko.net",
     "https://invidious.privacydev.net",
     "https://yt.cdaut.de",
     "https://invidious.nerdvpn.de",
+    "https://invidious.adminforge.de",
+    "https://yewtu.be",
 ]
 
 def _yt_id(url: str):
