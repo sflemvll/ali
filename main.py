@@ -137,13 +137,11 @@ def base_opts(for_download: bool = False) -> dict:
             )
         },
     }
-    # استخدم PO token provider إذا متاح، وإلا tv_embedded
-    opts["extractor_args"] = {
-        "youtube": {
-            "player_client": ["web", "tv_embedded"],
-            "po_token": ["web+bgutil://localhost:4416"],
+    # استخدم tv_embedded — يعمل بدون PO token
+    if for_download:
+        opts["extractor_args"] = {
+            "youtube": {"player_client": ["tv_embedded", "ios"]}
         }
-    }
     if COOKIES_FILE.exists():
         opts["cookiefile"] = str(COOKIES_FILE)
     return opts
