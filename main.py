@@ -40,26 +40,31 @@ def _invidious_info(video_id: str):
     return None, None
 
 def _invidious_stream_url(video_id: str, height: int = 0):
-    """احصل على رابط stream مباشر من Invidious"""
+    """احصل على رابط stream مدمج (فيديو+صوت) من Invidious"""
     data, inst = _invidious_info(video_id)
     if not data:
         return None, None, None
-    # اختر الجودة المناسبة
-    streams = data.get("adaptiveFormats", []) + data.get("formatStreams", [])
-    video_streams = [s for s in streams if s.get("type","").startswith("video")]
-    if height:
-        exact = [s for s in video_streams if s.get("resolution","") == f"{height}p"]
-        if exact:
-            video_streams = exact
-        else:
-            video_streams = [s for s in video_streams if int(s.get("resolution","0p").replace("p","") or 0) <= height] or video_streams
-    if video_streams:
-        video_streams.sort(key=lambda x: int(x.get("resolution","0p").replace("p","") or 0), reverse=True)
-        return video_streams[0].get("url"), data.get("title","video"), inst
-    # fallback: formatStreams (مدمجة)
-    fmt = data.get("formatStreams", [])
-    if fmt:
-        return fmt[0].get("url"), data.get("title","video"), inst
+    title = data.get("title", "video")
+    # formatStreams = فيديو+صوت مدمج (يصل حتى 720p) — يشتغل مباشرة
+    fmt_streams = data.get("formatStreams", [])
+    if fmt_streams:
+        if height:
+            candidates = [
+                s for s in fmt_streams
+                if int(s.get("resolution","0p").replace("p","") or 0) <= height
+            ]
+            if candidates:
+                candidates.sort(
+                    key=lambda x: int(x.get("resolution","0p").replace("p","") or 0),
+                    reverse=True
+                )
+                return candidates[0].get("url"), title, inst
+        # أعلى جودة متاحة
+        fmt_streams.sort(
+            key=lambda x: int(x.get("resolution","0p").replace("p","") or 0),
+            reverse=True
+        )
+        return fmt_streams[0].get("url"), title, inst
     return None, None, None
 
 app = FastAPI(title="SaveIt — Universal Video Downloader")
