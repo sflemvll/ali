@@ -205,6 +205,38 @@ async def get_info(data: InfoRequest):
     if cached:
         return {**cached, "cached": True}
 
+    # ── YouTube: استخدم Invidious مباشرة (أسرع وأموثوق) ────────────
+    vid = _yt_id(data.url)
+    if vid:
+        inv_data, inst = _invidious_info(vid)
+        if inv_data:
+            streams = inv_data.get("adaptiveFormats", []) + inv_data.get("formatStreams", [])
+            qualities, seen = [], set()
+            for s in streams:
+                res = s.get("resolution", "")
+                if res and s.get("type", "").startswith("video"):
+                    h = int(res.replace("p", "") or 0)
+                    lbl = f"{h}p"
+                    if lbl not in seen and h:
+                        seen.add(lbl)
+                        qualities.append({"label": lbl, "height": h})
+            qualities.sort(key=lambda x: x["height"], reverse=True)
+            if not qualities:
+                qualities = [{"label": "720p", "height": 720}]
+            thumbs = inv_data.get("videoThumbnails") or [{}]
+            result = {
+                "title":      inv_data.get("title", "بدون عنوان"),
+                "thumbnail":  thumbs[0].get("url", ""),
+                "duration":   inv_data.get("lengthSeconds", 0),
+                "channel":    inv_data.get("author", ""),
+                "view_count": inv_data.get("viewCount", 0),
+                "platform":   "YouTube",
+                "qualities":  qualities,
+                "cached":     False,
+            }
+            cache_set(data.url, result)
+            return result
+
     try:
         with yt_dlp.YoutubeDL({**base_opts(), "extract_flat": False}) as ydl:
             info = ydl.extract_info(data.url, download=False)
