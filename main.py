@@ -126,10 +126,20 @@ def detect_platform(url: str) -> str:
 COOKIES_FILE = Path(__file__).parent / "cookies.txt"
 
 def _ensure_cookies_file():
-    """إذا في YOUTUBE_COOKIES في البيئة، اكتبها لملف مؤقت"""
+    """اكتب ملف الكوكيز من البيئة. الأولوية لـ base64 (الأكثر موثوقية)."""
+    # 1) base64 — سطر واحد آمن لا ينكسر (الأفضل)
+    cookie_b64 = os.environ.get("YOUTUBE_COOKIES_B64", "")
+    if cookie_b64:
+        try:
+            import base64
+            content = base64.b64decode(cookie_b64).decode("utf-8")
+            COOKIES_FILE.write_text(content, encoding="utf-8")
+            return
+        except Exception:
+            pass
+    # 2) نص عادي مع \n / \t حرفية (احتياطي)
     cookie_env = os.environ.get("YOUTUBE_COOKIES", "")
     if cookie_env:
-        # Railway يخزن السطور كـ \n نصية — نحولها لأسطر حقيقية
         content = cookie_env.replace("\\n", "\n").replace("\\t", "\t")
         COOKIES_FILE.write_text(content, encoding="utf-8")
 
