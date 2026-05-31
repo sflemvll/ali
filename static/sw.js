@@ -1,7 +1,7 @@
-const CACHE_NAME = "saveit-v1";
-const STATIC = ["/", "/manifest.json"];
+const CACHE_NAME = "saveit-v2";
+const STATIC = ["/manifest.json"];
 
-// تثبيت: كاش الملفات الأساسية
+// تثبيت: كاش الملفات الأساسية فقط (بدون الصفحة الرئيسية)
 self.addEventListener("install", e => {
   e.waitUntil(
     caches.open(CACHE_NAME).then(c => c.addAll(STATIC))
@@ -9,7 +9,7 @@ self.addEventListener("install", e => {
   self.skipWaiting();
 });
 
-// تفعيل: حذف الكاش القديم
+// تفعيل: احذف كل الكاش القديم (v1 وغيره)
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -19,23 +19,23 @@ self.addEventListener("activate", e => {
   self.clients.claim();
 });
 
-// جلب: Network First للـ API، Cache First للباقي
+// جلب
 self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
 
-  // API دايماً من الشبكة
+  // API و SSE: دايماً من الشبكة
   if (url.pathname.startsWith("/api/")) {
     e.respondWith(fetch(e.request));
     return;
   }
 
-  // SSE دايماً من الشبكة
-  if (url.pathname.startsWith("/api/progress/")) {
+  // صفحات HTML (التنقّل): دايماً من الشبكة — تضمن آخر نسخة بدون تخزين
+  if (e.request.mode === "navigate") {
     e.respondWith(fetch(e.request));
     return;
   }
 
-  // باقي الطلبات: جرب الشبكة أولاً، وإذا فشلت استخدم الكاش
+  // باقي الملفات الثابتة: جرّب الشبكة أولاً، وإذا فشلت استخدم الكاش
   e.respondWith(
     fetch(e.request)
       .then(res => {
