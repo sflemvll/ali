@@ -146,11 +146,10 @@ def base_opts(for_download: bool = False) -> dict:
             )
         },
     }
-    # استخدم tv_embedded — يعمل بدون PO token
-    if for_download:
-        opts["extractor_args"] = {
-            "youtube": {"player_client": ["tv_embedded", "ios"]}
-        }
+    # android_vr يعمل بدون PO token ويدعم حتى 4K
+    opts["extractor_args"] = {
+        "youtube": {"player_client": ["android_vr", "mweb"]}
+    }
     if COOKIES_FILE.exists():
         opts["cookiefile"] = str(COOKIES_FILE)
     return opts
