@@ -370,14 +370,21 @@ def _run_download(job_id: str, url: str, quality: str):
 
     # ── إعدادات الصيغة ────────────────────────────────────────
     if quality == "audio":
-        fmt, ext = "bestaudio*/best", "mp3"
+        fmt, ext = "bestaudio[ext=m4a]/bestaudio/best", "mp3"
         pp = [{"key":"FFmpegExtractAudio","preferredcodec":"mp3","preferredquality":"192"}]
     elif quality == "best":
-        fmt, ext = "bestvideo*+bestaudio*/best", "mp4"
+        # نفضّل الفيديو المدمج (فيديو+صوت معاً) — يشتغل بدون ffmpeg merge
+        fmt, ext = "bestvideo[acodec!=none]+bestaudio/best[acodec!=none]/bestvideo+bestaudio/best", "mp4"
         pp = [{"key":"FFmpegVideoConvertor","preferedformat":"mp4"}]
     else:
         h   = quality.replace("p","")
-        fmt = f"bestvideo*[height<={h}]+bestaudio*/best[height<={h}]/best"
+        # نفضّل الفيديو المدمج بالجودة المطلوبة أولاً
+        fmt = (
+            f"bestvideo[height<={h}][acodec!=none]"
+            f"/bestvideo[height<={h}]+bestaudio"
+            f"/best[height<={h}][acodec!=none]"
+            f"/best[height<={h}]/best"
+        )
         ext = "mp4"
         pp  = [{"key":"FFmpegVideoConvertor","preferedformat":"mp4"}]
 
