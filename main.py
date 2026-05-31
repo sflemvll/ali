@@ -146,12 +146,10 @@ def base_opts(for_download: bool = False) -> dict:
             )
         },
     }
-    # اختيار الـ clients حسب توفر الكوكيز:
-    # - مع كوكيز: web/mweb يستفيدون منها لتخطّي حظر السيرفرات
-    # - بدون كوكيز: android_vr/tv يعملون بدون PO token
+    # android_vr أولاً (الأنجح ويعمل بدون PO token)، ثم web/mweb كـ fallback مع الكوكيز
     if COOKIES_FILE.exists():
         opts["cookiefile"] = str(COOKIES_FILE)
-        clients = ["web", "mweb", "android_vr", "tv"]
+        clients = ["android_vr", "web", "mweb", "tv"]
     else:
         clients = ["android_vr", "tv", "mweb"]
     opts["extractor_args"] = {"youtube": {"player_client": clients}}
