@@ -146,12 +146,15 @@ def base_opts(for_download: bool = False) -> dict:
             )
         },
     }
-    # android_vr يعمل بدون PO token ويدعم حتى 4K
-    opts["extractor_args"] = {
-        "youtube": {"player_client": ["android_vr", "mweb"]}
-    }
+    # اختيار الـ clients حسب توفر الكوكيز:
+    # - مع كوكيز: web/mweb يستفيدون منها لتخطّي حظر السيرفرات
+    # - بدون كوكيز: android_vr/tv يعملون بدون PO token
     if COOKIES_FILE.exists():
         opts["cookiefile"] = str(COOKIES_FILE)
+        clients = ["web", "mweb", "android_vr", "tv"]
+    else:
+        clients = ["android_vr", "tv", "mweb"]
+    opts["extractor_args"] = {"youtube": {"player_client": clients}}
     return opts
 
 # ── تشخيص الكوكيز ───────────────────────────────────────────────────
