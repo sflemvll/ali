@@ -171,6 +171,41 @@ async def debug_cookies():
         "file_path":   str(COOKIES_FILE),
     }
 
+# ── تشخيص شامل: أي طريقة تشتغل على هذا السيرفر ──────────────────────
+@app.get("/debug/test")
+async def debug_test(url: str = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"):
+    results = {}
+
+    # 1) Invidious
+    vid = _yt_id(url)
+    if vid:
+        inv_data, inst = _invidious_info(vid)
+        results["invidious"] = {
+            "ok": bool(inv_data),
+            "instance": inst,
+            "title": (inv_data or {}).get("title") if inv_data else None,
+        }
+
+    # 2) yt-dlp بعدة clients
+    for client in ["android_vr", "mweb", "web", "tv", "ios", "android"]:
+        opts = {
+            "quiet": True, "no_warnings": True, "skip_download": True,
+            "extractor_args": {"youtube": {"player_client": [client]}},
+        }
+        if COOKIES_FILE.exists():
+            opts["cookiefile"] = str(COOKIES_FILE)
+        try:
+            with yt_dlp.YoutubeDL(opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+            vfmts = [f for f in info.get("formats", [])
+                     if f.get("height") and f.get("vcodec") not in ("none", None)]
+            results[client] = {"ok": True, "video_formats": len(vfmts),
+                               "title": info.get("title")}
+        except Exception as e:
+            results[client] = {"ok": False, "error": str(e)[:150]}
+
+    return results
+
 # ── تنظيف اسم الملف ─────────────────────────────────────────────────
 def clean(name: str) -> str:
     return re.sub(r'[\\/*?:"<>|]', "_", name or "video").strip()
