@@ -33,6 +33,14 @@ def _yt_id(url: str):
     m = re.search(r"(?:v=|youtu\.be/)([A-Za-z0-9_-]{11})", url)
     return m.group(1) if m else None
 
+def _clean_url(url: str) -> str:
+    """نظّف رابط يوتيوب: احذف قوائم التشغيل (&list=) والمعاملات الزائدة
+    حتى لا يحاول yt-dlp جلب القائمة كلها فيعلّق."""
+    vid = _yt_id(url)
+    if vid:
+        return f"https://www.youtube.com/watch?v={vid}"
+    return url
+
 def _invidious_info(video_id: str):
     for inst in INVIDIOUS:
         try:
@@ -148,6 +156,7 @@ def base_opts(for_download: bool = False) -> dict:
     opts = {
         "quiet": True,
         "no_warnings": True,
+        "noplaylist": True,
         "http_headers": {
             "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -249,6 +258,7 @@ async def robots():
 # ────────────────────────────────────────────────────────────────────
 @app.post("/api/info")
 async def get_info(data: InfoRequest):
+    data.url = _clean_url(data.url)
     # تحقق من الكاش أولاً
     cached = cache_get(data.url)
     if cached:
@@ -377,6 +387,7 @@ async def download_start(data: DownloadRequest):
     return {"job_id": job_id}
 
 def _run_download(job_id: str, url: str, quality: str):
+    url = _clean_url(url)
     job = _jobs[job_id]
     job["status"] = "downloading"
 
