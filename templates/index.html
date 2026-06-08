@@ -726,6 +726,25 @@ function showErr(msg){
 }
 function hideErr(){document.getElementById("err-msg").style.display="none";}
 
+/* ════ fetch مع إعادة محاولة تلقائية — يعالج تقطّع الشبكة ════ */
+async function fetchRetry(resource, options={}, retries=3, timeout=45000){
+  let lastErr;
+  for(let attempt=0; attempt<retries; attempt++){
+    const ctrl=new AbortController();
+    const tid=setTimeout(()=>ctrl.abort(), timeout);
+    try{
+      const res=await fetch(resource,{...options, signal:ctrl.signal});
+      clearTimeout(tid);
+      return res;
+    }catch(e){
+      clearTimeout(tid);
+      lastErr=e;
+      if(attempt<retries-1) await new Promise(r=>setTimeout(r, 1200*(attempt+1)));
+    }
+  }
+  throw lastErr;
+}
+
 /* ════ جلب معلومات الفيديو ════ */
 async function fetchInfo(){
   const url=document.getElementById("url-input").value.trim();
@@ -738,7 +757,7 @@ async function fetchInfo(){
   document.getElementById("ok-msg").style.display="none";
 
   try{
-    const r=await fetch("/api/info",{
+    const r=await fetchRetry("/api/info",{
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({url})
     });
@@ -816,7 +835,7 @@ async function startDownload(){
 
   try{
     // 1. ابدأ التحميل واحصل على job_id
-    const startRes=await fetch("/api/download/start",{
+    const startRes=await fetchRetry("/api/download/start",{
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({url,quality:selQ})
     });
