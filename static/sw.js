@@ -1,48 +1,25 @@
-const CACHE_NAME = "saveit-v2";
-const STATIC = ["/manifest.json"];
-
-// تثبيت: كاش الملفات الأساسية فقط (بدون الصفحة الرئيسية)
-self.addEventListener("install", e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(c => c.addAll(STATIC))
-  );
+// ════════════════════════════════════════════════════════════
+// Kill-switch Service Worker
+// يلغي أي service worker قديم، يمسح كل الكاش المخزّن،
+// ويعيد تحميل الصفحة لتأخذ آخر نسخة — تلقائياً وبدون تدخل المستخدم.
+// ════════════════════════════════════════════════════════════
+self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
-// تفعيل: احذف كل الكاش القديم (v1 وغيره)
-self.addEventListener("activate", e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
+self.addEventListener("activate", (event) => {
+  event.waitUntil((async () => {
+    // 1) امسح كل الكاش المخزّن (أي نسخة قديمة)
+    const keys = await caches.keys();
+    await Promise.all(keys.map((k) => caches.delete(k)));
 
-// جلب
-self.addEventListener("fetch", e => {
-  const url = new URL(e.request.url);
+    // 2) ألغِ تسجيل هذا الـ service worker نهائياً
+    await self.registration.unregister();
 
-  // API و SSE: دايماً من الشبكة
-  if (url.pathname.startsWith("/api/")) {
-    e.respondWith(fetch(e.request));
-    return;
-  }
-
-  // صفحات HTML (التنقّل): دايماً من الشبكة — تضمن آخر نسخة بدون تخزين
-  if (e.request.mode === "navigate") {
-    e.respondWith(fetch(e.request));
-    return;
-  }
-
-  // باقي الملفات الثابتة: جرّب الشبكة أولاً، وإذا فشلت استخدم الكاش
-  e.respondWith(
-    fetch(e.request)
-      .then(res => {
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
-        return res;
-      })
-      .catch(() => caches.match(e.request))
-  );
+    // 3) أعد تحميل كل التبويبات المفتوحة لتأخذ آخر نسخة من السيرفر
+    const clients = await self.clients.matchAll({ type: "window" });
+    for (const client of clients) {
+      client.navigate(client.url);
+    }
+  })());
 });
