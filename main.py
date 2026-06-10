@@ -165,12 +165,13 @@ def base_opts(for_download: bool = False) -> dict:
             )
         },
     }
-    # android_vr أولاً (الأنجح ويعمل بدون PO token)، ثم web/mweb كـ fallback مع الكوكيز
+    # مع PO Token provider: web/mweb يحصلون على توكنات تتجاوز حظر السيرفرات
+    # android_vr احتياطي (لا يحتاج توكن أصلاً)
     if COOKIES_FILE.exists():
         opts["cookiefile"] = str(COOKIES_FILE)
-        clients = ["android_vr", "web", "mweb", "tv"]
+        clients = ["web", "mweb", "tv", "android_vr"]
     else:
-        clients = ["android_vr", "tv", "mweb"]
+        clients = ["web", "android_vr", "tv", "mweb"]
     opts["extractor_args"] = {"youtube": {"player_client": clients}}
     return opts
 
